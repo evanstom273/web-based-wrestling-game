@@ -1,5 +1,8 @@
+import { lazy, Suspense } from 'react';
 import { GameViewport } from '../game/scene/GameViewport';
 import { MatchControls } from '../game/ui/MatchControls';
+
+const ModelLab = lazy(() => import('../model-lab/ModelLab').then((m) => ({ default: m.ModelLab })));
 
 export function App() {
   return (
@@ -23,8 +26,19 @@ export function App() {
       </section>
 
       <main data-testid="landscape-app" className="landscape-app match-shell">
-        <GameViewport />
-        <MatchControls />
+        {window.location.pathname === '/model-lab' ? (
+          <Suspense fallback={<p>Opening model lab…</p>}>
+            <ModelLab />
+          </Suspense>
+        ) : (
+          <>
+            <GameViewport />
+            <MatchControls />
+            <a className="model-lab-link" href="/model-lab">
+              Model lab ↗
+            </a>
+          </>
+        )}
       </main>
     </>
   );
