@@ -2,6 +2,8 @@ import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 export type Point = [number, number, number];
 /** Indexed surface builder: adjacent anatomical regions share boundary vertex IDs. */
 export class Surface {
+  region = 0;
+  regions: number[] = [];
   positions: number[] = [];
   colors: number[] = [];
   colored = false;
@@ -11,6 +13,7 @@ export class Surface {
     this.colors.push(...(color ?? [1, 1, 1]));
     const id = this.positions.length / 3;
     this.positions.push(...p);
+    this.regions.push(this.region);
     return id;
   }
   point(i: number): Point {
@@ -61,16 +64,19 @@ export class Surface {
     const remap = new Map<number, number>();
     const positions: number[] = [];
     const colors: number[] = [];
+    const regions: number[] = [];
     const indices = this.indices.map((id) => {
       const old = remap.get(id);
       if (old !== undefined) return old;
       const next = positions.length / 3;
       positions.push(...this.point(id));
+      regions.push(this.regions[id]!);
       colors.push(...this.colors.slice(id * 3, id * 3 + 3));
       remap.set(id, next);
       return next;
     });
     const g = new BufferGeometry();
+    g.setAttribute('region', new Float32BufferAttribute(regions, 1));
     g.setAttribute('position', new Float32BufferAttribute(positions, 3));
     g.setIndex(indices);
     if (this.colored) g.setAttribute('color', new Float32BufferAttribute(colors, 3));
@@ -109,6 +115,7 @@ export function loft(profiles: Point[][]): Surface {
 export function appendSurface(target: Surface, source: Surface) {
   const offset = target.positions.length / 3;
   target.positions.push(...source.positions);
+  target.regions.push(...source.regions.map((r) => r || target.region));
   target.colors.push(...source.colors);
   target.indices.push(...source.indices.map((i) => i + offset));
 }

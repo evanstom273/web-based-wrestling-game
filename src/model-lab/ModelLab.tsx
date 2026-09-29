@@ -1,3 +1,5 @@
+import { defaultPose } from '../game/scene/human/poses';
+import { StudyControls } from './StudyControls';
 import { useState } from 'react';
 import {
   bodyParameters,
@@ -11,7 +13,10 @@ const groups: { title: string; keys: BodyParameter[] }[] = [
   { title: 'Frame', keys: ['height', 'shoulders', 'chest', 'depth', 'waist', 'hips', 'torso'] },
   { title: 'Arms & hands', keys: ['arms', 'upperArms', 'forearms', 'hands'] },
   { title: 'Legs & feet', keys: ['legs', 'thighs', 'calves', 'feet'] },
-  { title: 'Head & build', keys: ['head', 'neck', 'neckLength', 'muscle', 'fat'] },
+  {
+    title: 'Head & build',
+    keys: ['head', 'neck', 'neckLength', 'muscle', 'fat', 'feminine', 'bust'],
+  },
 ];
 export function ModelLab() {
   const [definition, setDefinition] = useState<WrestlerVisualDefinition>(bodyPresets.Athletic);
@@ -20,12 +25,13 @@ export function ModelLab() {
   const [revision, setRevision] = useState(0);
   const [rotating, setRotating] = useState(false);
   const [wireframe, setWireframe] = useState(false);
+  const [pose, setPose] = useState(defaultPose);
   const [gear, setGear] = useState(true);
   return (
     <div className="model-lab" data-testid="model-lab">
       <header className="lab-header">
         <div>
-          <span className="lab-eyebrow">PROCEDURAL HUMAN STUDY / 01</span>
+          <span className="lab-eyebrow">PROCEDURAL HUMAN STUDY / 02</span>
           <h1>Wrestler model lab</h1>
         </div>
         <a href="/">Return to ring ↗</a>
@@ -39,6 +45,7 @@ export function ModelLab() {
             rotating={rotating}
             wireframe={wireframe}
             gear={gear}
+            pose={pose}
           />
         </div>
         <div className="lab-caption">
@@ -101,17 +108,13 @@ export function ModelLab() {
             />{' '}
             Slow rotation
           </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={definition.hairstyle === 'crop'}
-              onChange={(e) =>
-                setDefinition({ ...definition, hairstyle: e.target.checked ? 'crop' : 'none' })
-              }
-            />{' '}
-            Short crop hair
-          </label>
         </div>
+        <StudyControls
+          definition={definition}
+          change={setDefinition}
+          pose={pose}
+          setPose={setPose}
+        />
         {groups.map((group) => (
           <details className="lab-section" key={group.title} open>
             <summary>{group.title}</summary>
