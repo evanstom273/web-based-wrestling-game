@@ -31,14 +31,16 @@ export function ModelLab() {
         <a href="/">Return to ring ↗</a>
       </header>
       <section className="lab-stage" aria-label="Wrestler studio">
-        <StudioViewport
-          definition={definition}
-          view={view}
-          revision={revision}
-          rotating={rotating}
-          wireframe={wireframe}
-          gear={gear}
-        />
+        <div className="lab-canvas">
+          <StudioViewport
+            definition={definition}
+            view={view}
+            revision={revision}
+            rotating={rotating}
+            wireframe={wireframe}
+            gear={gear}
+          />
+        </div>
         <div className="lab-caption">
           <strong>{preset}</strong>
           <span>{definition.body.height.toFixed(2)} m · generated geometry</span>

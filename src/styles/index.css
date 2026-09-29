@@ -168,7 +168,7 @@ button {
   width: 100%;
   text-align: center;
   font-size: 11px;
-  color: #334444;
+  color: #aebdb9;
   pointer-events: none;
 }
 .lab-panel {
@@ -317,5 +317,15 @@ button {
   }
   .lab-hint {
     display: none;
+  }
+}
+
+.lab-canvas {
+  position: absolute;
+  inset: 0 0 80px;
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .lab-canvas {
+    bottom: 56px;
   }
 }

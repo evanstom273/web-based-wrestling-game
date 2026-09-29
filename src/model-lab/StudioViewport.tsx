@@ -25,7 +25,7 @@ function StudioCamera({
       'Three-quarter': Math.PI / 5,
     };
     const a = angles[view];
-    const distance = Math.max(3.55, 2.6 / (size.width / size.height));
+    const distance = Math.max(3.9, 2.8 / (size.width / size.height));
     camera.position.set(Math.sin(a) * distance, 1.08, Math.cos(a) * distance);
     camera.lookAt(0, 1.02, 0);
     controls.current?.target.set(0, 1.02, 0);
@@ -63,9 +63,10 @@ export function StudioViewport({
   return (
     <Canvas
       shadows
+      frameloop="demand"
       dpr={[1, 1.75]}
       camera={{ position: [2, 1.08, 3], fov: 37, near: 0.05, far: 40 }}
-      gl={{ antialias: true, preserveDrawingBuffer: true }}
+      gl={{ antialias: true }}
     >
       <color attach="background" args={['#b6b9b9']} />
       <hemisphereLight args={['#ffffff', '#77736c', 1.7]} />
@@ -78,11 +79,14 @@ export function StudioViewport({
         shadow-camera-right={2}
         shadow-camera-top={3}
         shadow-camera-bottom={-2}
-        shadow-normalBias={0.015}
+        shadow-normalBias={0.005}
+        shadow-bias={-0.0002}
+        shadow-camera-near={0.1}
+        shadow-camera-far={12}
       />
       <directionalLight position={[3, 2, -3]} intensity={1.4} color="#eef2ff" />
       <HumanPreview definition={definition} wireframe={wireframe} gear={gear} />
-      <mesh receiveShadow rotation-x={-Math.PI / 2} position-y={0.003}>
+      <mesh receiveShadow rotation-x={-Math.PI / 2} position-y={0}>
         <planeGeometry args={[200, 200]} />
         <meshStandardMaterial color="#a6aaaa" roughness={1} />
       </mesh>

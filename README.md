@@ -51,6 +51,10 @@ Install Playwright's browser once before local E2E testing:
 npx playwright install chromium
 ```
 
+## Wrestler model lab
+
+Open `/model-lab` to inspect and tune four procedural human builds. See [the generator notes](docs/PROCEDURAL_HUMAN.md) for parameters, topology and limitations. The match scene retains its original renderer.
+
 ## Architecture
 
 Read [`AGENTS.md`](./AGENTS.md) and [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) before substantial implementation work.
