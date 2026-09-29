@@ -62,9 +62,9 @@ export function App() {
             ))}
           </div>
           <div className="mt-5 border-t border-zinc-800 pt-4 text-xs leading-5 text-zinc-500">
-            The ring and wrestlers are geometry generated in code. Orbit the camera with mouse/touch.
-            Rapier owns collision space from the first commit; match rules will remain separate from
-            rendering and physics.
+            The ring and wrestlers are geometry generated in code. Orbit the camera with
+            mouse/touch. Rapier owns collision space from the first commit; match rules will remain
+            separate from rendering and physics.
           </div>
         </aside>
       </section>

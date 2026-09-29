@@ -28,18 +28,23 @@ React + Tailwind application UI
 ## Ownership
 
 ### `src/app`
+
 Application shell and route-level composition. It may subscribe to stores and render UI, but it must not own wrestling formulas.
 
 ### `src/game/engine`
+
 Authoritative domain state and pure match logic. This is where rules must ultimately live. It should remain runnable in Vitest without a browser or renderer.
 
 ### `src/game/state`
+
 Small Zustand stores that bridge application input and render/UI state. Keep match-domain rules out of stores.
 
 ### `src/game/scene`
+
 R3F/Three presentation, procedural geometry, cameras, lights and visual animation. Scene components render state and report intents; they do not decide authoritative outcomes.
 
 ### Rapier
+
 Rapier is present from the foundation. The intended boundary is spatial reality: colliders, ring edges, environmental objects, impacts, weapons and future ragdoll/secondary motion. Controlled wrestling choreography and match results remain engine decisions.
 
 ## Time model

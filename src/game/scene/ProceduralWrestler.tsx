@@ -27,7 +27,12 @@ export function ProceduralWrestler({
   });
 
   return (
-    <RigidBody type="kinematicPosition" position={position} colliders={false} enabledRotations={[false, false, false]}>
+    <RigidBody
+      type="kinematicPosition"
+      position={position}
+      colliders={false}
+      enabledRotations={[false, false, false]}
+    >
       <CapsuleCollider args={[0.72, 0.32]} position={[0, 1.05, 0]} />
       <group ref={visual} rotation-y={mirrored ? Math.PI : 0}>
         <mesh castShadow position={[0, 1.2, 0]}>

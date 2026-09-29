@@ -19,7 +19,9 @@ export function GameViewport() {
         <div className="text-[10px] font-black tracking-[0.18em] text-amber-300 uppercase">
           Live scene
         </div>
-        <div className="mt-0.5 text-xs text-zinc-300">Procedural ring · procedural wrestlers · Rapier world</div>
+        <div className="mt-0.5 text-xs text-zinc-300">
+          Procedural ring · procedural wrestlers · Rapier world
+        </div>
       </div>
 
       <Canvas

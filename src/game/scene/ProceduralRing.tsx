@@ -43,10 +43,42 @@ export function ProceduralRing() {
       ))}
 
       {ropeHeights.flatMap((height) => [
-        <Line key={`front-${height}`} points={[[-4, height, -4], [4, height, -4]]} color="#b91c2c" lineWidth={2} />,
-        <Line key={`back-${height}`} points={[[-4, height, 4], [4, height, 4]]} color="#b91c2c" lineWidth={2} />,
-        <Line key={`left-${height}`} points={[[-4, height, -4], [-4, height, 4]]} color="#b91c2c" lineWidth={2} />,
-        <Line key={`right-${height}`} points={[[4, height, -4], [4, height, 4]]} color="#b91c2c" lineWidth={2} />,
+        <Line
+          key={`front-${height}`}
+          points={[
+            [-4, height, -4],
+            [4, height, -4],
+          ]}
+          color="#b91c2c"
+          lineWidth={2}
+        />,
+        <Line
+          key={`back-${height}`}
+          points={[
+            [-4, height, 4],
+            [4, height, 4],
+          ]}
+          color="#b91c2c"
+          lineWidth={2}
+        />,
+        <Line
+          key={`left-${height}`}
+          points={[
+            [-4, height, -4],
+            [-4, height, 4],
+          ]}
+          color="#b91c2c"
+          lineWidth={2}
+        />,
+        <Line
+          key={`right-${height}`}
+          points={[
+            [4, height, -4],
+            [4, height, 4],
+          ]}
+          color="#b91c2c"
+          lineWidth={2}
+        />,
       ])}
     </group>
   );
