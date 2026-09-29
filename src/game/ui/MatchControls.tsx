@@ -47,7 +47,9 @@ export function MatchControls() {
             aria-label={button.label}
             className="pointer-events-auto flex h-[clamp(58px,8vw,82px)] w-[clamp(58px,8vw,82px)] flex-col items-center justify-center rounded-full border border-white/30 bg-black/45 text-zinc-100 backdrop-blur-md transition active:scale-95 active:bg-white/15"
           >
-            <span className="text-[clamp(20px,2.5vw,28px)] font-black leading-none">{button.key}</span>
+            <span className="text-[clamp(20px,2.5vw,28px)] font-black leading-none">
+              {button.key}
+            </span>
             <span className="mt-1 max-w-[90%] text-center text-[clamp(8px,1vw,11px)] leading-tight font-semibold text-zinc-300">
               {button.label}
             </span>
