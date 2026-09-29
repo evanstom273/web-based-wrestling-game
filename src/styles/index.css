@@ -60,11 +60,8 @@ button {
     min-height: 100dvh;
     align-items: center;
     justify-content: center;
-    padding:
-      max(24px, env(safe-area-inset-top))
-      max(24px, env(safe-area-inset-right))
-      max(24px, env(safe-area-inset-bottom))
-      max(24px, env(safe-area-inset-left));
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   }
 
   .landscape-app {
