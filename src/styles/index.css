@@ -20,15 +20,19 @@
   box-sizing: border-box;
 }
 
-html {
+html,
+body,
+#root {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
   background: #090b10;
 }
 
 body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: radial-gradient(circle at 50% -10%, rgb(30 41 59 / 0.45), transparent 42rem), #090b10;
+  min-height: 100dvh;
 }
 
 button,
@@ -42,8 +46,13 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-#root {
-  min-height: 100vh;
+.match-shell {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000;
 }
 
 .portrait-orientation-guard {
@@ -51,10 +60,6 @@ button {
 }
 
 @media (orientation: portrait) and (max-width: 699px) {
-  body {
-    min-height: 100dvh;
-  }
-
   .portrait-orientation-guard {
     display: flex;
     min-height: 100dvh;
