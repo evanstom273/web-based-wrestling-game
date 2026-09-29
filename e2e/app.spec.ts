@@ -1,16 +1,28 @@
 import { expect, test } from '@playwright/test';
 
-test('boots the 3D foundation and exposes the physics control', async ({ page }) => {
+test('boots the full-screen match view with visible controls', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'Web Wrestling' })).toBeVisible();
   await expect(page.getByTestId('game-viewport')).toBeVisible();
+  await expect(page.getByTestId('match-controls')).toBeVisible();
+  await expect(page.getByTestId('movement-pad')).toBeVisible();
+
+  for (const control of ['a', 'g', 'r', 'p', 't', 'focus']) {
+    await expect(page.getByTestId(`control-${control}`)).toBeVisible();
+  }
+
   await expect(page.getByTestId('portrait-orientation-guard')).toBeHidden();
 
-  const physicsButton = page.getByRole('button', { name: /Physics debug:/ });
-  await expect(physicsButton).toHaveAttribute('aria-pressed', 'false');
-  await physicsButton.click();
-  await expect(physicsButton).toHaveAttribute('aria-pressed', 'true');
+  const viewportBox = await page.getByTestId('game-viewport').boundingBox();
+  const pageSize = page.viewportSize();
+
+  expect(viewportBox).not.toBeNull();
+  expect(pageSize).not.toBeNull();
+
+  if (viewportBox && pageSize) {
+    expect(Math.abs(viewportBox.width - pageSize.width)).toBeLessThanOrEqual(2);
+    expect(Math.abs(viewportBox.height - pageSize.height)).toBeLessThanOrEqual(2);
+  }
 });
 
 test('blocks narrow portrait phones with a rotate-device screen', async ({ page }) => {
