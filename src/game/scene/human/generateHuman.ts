@@ -1,5 +1,5 @@
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
-import { validateBody, type Body } from './definition';
+import { validateBody, type Body, type WrestlerVisualDefinition } from './definition';
 import { ellipse, loft, Surface, appendSurface, orientShells, type Point } from './mesh';
 import { buildHead } from './head';
 export type HumanGeometry = {
@@ -10,12 +10,17 @@ export type HumanGeometry = {
   pads: BufferGeometry;
   hair: BufferGeometry;
   features: BufferGeometry;
+  scale: number;
+  floor: number;
   triangles: number;
   dispose: () => void;
 };
 
 /** Generates a shared-boundary body, with authored profiles in metres. +Z is the face. */
-export function generateHuman(body: Body): HumanGeometry {
+export function generateHuman(
+  body: Body,
+  appearance?: Pick<WrestlerVisualDefinition, 'face' | 'hairstyle'>,
+): HumanGeometry {
   const b = validateBody(body);
   const skin = new Surface(),
     trunks = new Surface(),
@@ -28,6 +33,7 @@ export function generateHuman(body: Body): HumanGeometry {
   const hipY = 0.91 * b.legs;
   const ty = (y: number) => hipY + (y - 0.91) * b.torso;
   const soft = b.fat;
+  const female = b.feminine;
   const muscle = b.muscle * (1 - soft * 0.7);
   // Pelvis → abdomen → rib cage → axilla → clavicle → trapezius → neck.
   const levels: [number, number, number, number][] = [
@@ -55,6 +61,16 @@ export function generateHuman(body: Body): HumanGeometry {
     skin.ring(
       ellipse(0, ty(y), z, w, d).map(([x, yy, zz], j): Point => {
         const angle = (j / 24) * Math.PI * 2;
+        if (y < 1.055) x *= 1 + female * 0.045;
+        if (y >= 1.055 && y <= 1.235)
+          x *= 1 - female * 0.06 * Math.sin(((y - 1.055) / 0.18) * Math.PI);
+        // Female contour is part of the rib-cage surface, never an attached breast primitive.
+        if (zz > 0 && y > 1.19 && y < 1.43) {
+          const chestContour =
+            Math.exp(-(((y - 1.305) / 0.063) ** 2)) *
+            Math.exp(-(((Math.abs(x) - 0.095) / 0.065) ** 2));
+          zz += female * (0.018 + b.bust * 0.028) * chestContour;
+        }
         // Broad pectoral plane with a restrained sternum valley; no applied muscle blobs.
         if (y > 1.23 && y < 1.43 && zz > 0)
           zz += muscle * 0.022 * Math.sin(angle) * Math.sin(angle * 2) ** 2;
@@ -89,6 +105,7 @@ export function generateHuman(body: Body): HumanGeometry {
   // Two legs share the pelvis hem and the same crotch vertex. No spheres or hidden seams.
   const crotch = skin.vertex([0, ty(0.867), 0]);
   for (const side of [-1, 1]) {
+    skin.region = side === -1 ? 1 : 2;
     const indices =
       side === 1
         ? [18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4, 5, 6]
@@ -102,7 +119,9 @@ export function generateHuman(body: Body): HumanGeometry {
       [0.76, 0.108 * b.thighs, 0.113 * b.thighs, 0.011, 0.139 * b.hips],
       [0.66, 0.087 * b.thighs, 0.093 * b.thighs, 0.019, 0.151 * b.hips],
       [0.565, 0.067, 0.072, 0.03, 0.16 * b.hips],
+      [0.54, 0.065, 0.068, 0.033, 0.162 * b.hips],
       [0.515, 0.064, 0.066, 0.034, 0.165 * b.hips],
+      [0.494, 0.063, 0.063, 0.025, 0.167 * b.hips],
       [0.475, 0.064 * b.calves, 0.062, 0.013, 0.17 * b.hips],
       [0.405, 0.073 * b.calves, 0.079 * b.calves, -0.01, 0.179 * b.hips],
       [0.335, 0.063 * b.calves, 0.073 * b.calves, -0.014, 0.188 * b.hips],
@@ -181,6 +200,7 @@ export function generateHuman(body: Body): HumanGeometry {
         }),
       ),
     );
+    skin.region = side === -1 ? 3 : 4;
     // Shoulder opening ordered around its perimeter, smoothly landing on the deltoid.
     const center = side === 1 ? 0 : 12;
     const at = (r: number, j: number) => rings[r]![(j + 24) % 24]!;
@@ -199,11 +219,13 @@ export function generateHuman(body: Body): HumanGeometry {
     const angles = opening.map((_, i) => startAngle + ((side * i) / opening.length) * Math.PI * 2);
     let arm = opening;
     const armProfiles: [number, number, number, number][] = [
-      [0.035, 0.079 * b.upperArms, 0.084 * b.upperArms, 0],
-      [0.09, 0.084 * b.upperArms, 0.088 * b.upperArms, 0],
+      [0.025, 0.075 * b.upperArms, 0.08 * b.upperArms, 0],
+      [0.075, 0.081 * b.upperArms, 0.085 * b.upperArms, 0],
       [0.17, 0.074 * b.upperArms, 0.079 * b.upperArms, 0.002],
       [0.245, 0.057, 0.059, 0.008],
+      [0.266, 0.053, 0.055, 0.012],
       [0.285, 0.052, 0.054, 0.016],
+      [0.303, 0.055 * b.forearms, 0.058 * b.forearms, 0.019],
       [0.325, 0.059 * b.forearms, 0.063 * b.forearms, 0.021],
       [0.395, 0.052 * b.forearms, 0.056 * b.forearms, 0.027],
       [0.455, 0.037, 0.04, 0.033],
@@ -225,8 +247,9 @@ export function generateHuman(body: Body): HumanGeometry {
       [0.51, 0.039, 0.028],
       [0.55, 0.045, 0.027],
       [0.59, 0.041, 0.026],
-      [0.635, 0.032, 0.022],
-      [0.653, 0.019, 0.014],
+      [0.615, 0.038, 0.022],
+      [0.641, 0.031, 0.018],
+      [0.655, 0.018, 0.009],
     ];
     const thumbIndex = angles.reduce(
       (best, a, i) => (Math.cos(a - 2.6) > Math.cos(angles[best]! - 2.6) ? i : best),
@@ -236,7 +259,20 @@ export function generateHuman(body: Body): HumanGeometry {
     const palmRings: number[][] = [];
     handProfiles.forEach(([t, w, d], row) => {
       const dist = 0.485 * b.arms + (t - 0.485) * b.hands;
-      const ring = skin.ring(angles.map((a) => armPoint(dist, w * b.hands, d * b.hands, 0.035, a)));
+      const ring = skin.ring(
+        angles.map((a) => {
+          const p = armPoint(
+            dist,
+            w * b.hands,
+            d * b.hands,
+            0.035 + Math.max(0, t - 0.57) * 0.23,
+            a,
+          );
+          // Flatten the palm and round the unequal finger envelope instead of a conical tip.
+          if (t > 0.61) p[1] += Math.abs(Math.cos(a)) * 0.012 * b.hands;
+          return p;
+        }),
+      );
       if (row === 1 || row === 2) {
         for (let j = 0; j < angles.length; j++) {
           if (j === wrap(thumbIndex - 1) || j === thumbIndex) continue;
@@ -299,6 +335,7 @@ export function generateHuman(body: Body): HumanGeometry {
       ),
     );
   }
+  skin.region = features.region = hair.region = 5;
   buildHead(
     skin,
     features,
@@ -306,6 +343,8 @@ export function generateHuman(body: Body): HumanGeometry {
     rings[rings.length - 1]!,
     ty(1.6) + (b.neckLength - 1) * 0.065,
     b.head,
+    appearance?.face ?? 'balanced',
+    appearance?.hairstyle ?? 'crop',
   );
   // Reuse the exact pelvis topology and weld garment vertices by source ID.
   orientShells(skin);
@@ -354,6 +393,8 @@ export function generateHuman(body: Body): HumanGeometry {
   ) as Record<keyof typeof surfaces, BufferGeometry>;
   return {
     ...geometries,
+    scale,
+    floor,
     triangles: Object.values(geometries).reduce((n, g) => n + (g.index?.count ?? 0) / 3, 0),
     dispose: () => Object.values(geometries).forEach((g) => g.dispose()),
   };

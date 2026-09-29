@@ -19,6 +19,8 @@ export const bodyParameters = {
   neck: { label: 'Neck thickness', min: 0.85, max: 1.2, default: 1 },
   neckLength: { label: 'Neck length', min: 0.85, max: 1.15, default: 1 },
   muscle: { label: 'Muscle definition', min: 0, max: 1, default: 0.65 },
+  feminine: { label: 'Female morphology', min: 0, max: 1, default: 0 },
+  bust: { label: 'Chest contour', min: 0, max: 1, default: 0.45 },
   fat: { label: 'Body softness', min: 0, max: 1, default: 0.15 },
 } as const;
 export type BodyParameter = keyof typeof bodyParameters;
@@ -29,7 +31,29 @@ export type WrestlerVisualDefinition = {
   gear: string;
   accent: string;
   hair: string;
-  hairstyle: 'crop' | 'none';
+  hairstyle: 'crop' | 'none' | 'crest' | 'swept' | 'bob';
+  face: 'balanced' | 'broad' | 'tapered';
+  wardrobe: Wardrobe;
+};
+export type Wardrobe = {
+  outfit: 'trunks' | 'short-tights' | 'full-tights' | 'singlet';
+  boots: 'classic' | 'tall' | 'none';
+  top: boolean;
+  kneePads: boolean;
+  wristTape: boolean;
+  armTape: boolean;
+  armbands: boolean;
+  mask: 'none' | 'classic' | 'open';
+};
+export const defaultWardrobe: Wardrobe = {
+  outfit: 'trunks',
+  boots: 'classic',
+  top: false,
+  kneePads: true,
+  wristTape: true,
+  armTape: false,
+  armbands: false,
+  mask: 'none',
 };
 export const defaultBody = Object.fromEntries(
   Object.entries(bodyParameters).map(([key, value]) => [key, value.default]),
@@ -51,8 +75,58 @@ const preset = (body: Partial<Body>, skin: string, gear: string): WrestlerVisual
   accent: '#dfdfd5',
   hair: '#28211e',
   hairstyle: 'crop',
+  face: 'balanced',
+  wardrobe: { ...defaultWardrobe },
 });
 export const bodyPresets = {
+  'Female athletic': {
+    ...preset(
+      {
+        height: 1.72,
+        feminine: 1,
+        shoulders: 0.91,
+        chest: 0.93,
+        waist: 0.92,
+        hips: 1.05,
+        upperArms: 0.84,
+        forearms: 0.88,
+        thighs: 1.03,
+        neck: 0.88,
+        muscle: 0.55,
+        fat: 0.25,
+      },
+      '#bd8666',
+      '#583d80',
+    ),
+    face: 'tapered',
+    hairstyle: 'swept',
+    wardrobe: { ...defaultWardrobe, outfit: 'full-tights', top: true },
+  },
+  'Female powerhouse': {
+    ...preset(
+      {
+        height: 1.82,
+        feminine: 1,
+        shoulders: 1.03,
+        chest: 1.04,
+        depth: 1.06,
+        waist: 1.06,
+        hips: 1.13,
+        upperArms: 1.13,
+        forearms: 1.07,
+        thighs: 1.18,
+        calves: 1.13,
+        neck: 1.03,
+        muscle: 0.8,
+        fat: 0.45,
+      },
+      '#80553e',
+      '#245a54',
+    ),
+    face: 'broad',
+    hairstyle: 'bob',
+    wardrobe: { ...defaultWardrobe, outfit: 'singlet' },
+  },
   Athletic: preset({}, '#b47c59', '#214e68'),
   Powerhouse: preset(
     {

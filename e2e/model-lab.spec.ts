@@ -62,3 +62,43 @@ test('lab honors the phone portrait gate and recovers when rotated', async ({ pa
   await expect(page.getByTestId('model-lab')).toBeVisible();
   await expect(page.locator('.lab-stage canvas')).toHaveAttribute('data-rendered-height', '1.86');
 });
+
+test('rig studies and wardrobe remain usable across body builds', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/model-lab');
+  const canvas = page.locator('.lab-stage canvas');
+  await expect(canvas).toHaveAttribute('data-bones', '25');
+  for (const [name, height] of [
+    ['Female athletic', '1.72'],
+    ['Female powerhouse', '1.82'],
+  ] as const) {
+    await page.getByRole('button', { name, exact: true }).click();
+    await expect(canvas).toHaveAttribute('data-rendered-height', height);
+  }
+  await page.getByLabel('Pose', { exact: true }).selectOption('Reach');
+  await expect(canvas).toHaveAttribute('data-pose', 'Reach');
+  await page.getByLabel('Show skeleton', { exact: true }).check();
+  await page.getByLabel('Hand curl', { exact: true }).fill('1');
+  await page.getByLabel('Cycle scrub', { exact: true }).fill('0.25');
+  for (const outfit of ['trunks', 'short-tights', 'full-tights', 'singlet']) {
+    await page.getByLabel('Outfit', { exact: true }).selectOption(outfit);
+    await expect(canvas).toHaveAttribute('data-outfit', outfit);
+  }
+  await page.getByLabel('Mask', { exact: true }).selectOption('classic');
+  await page.getByLabel('Boots', { exact: true }).selectOption('tall');
+  await page.getByLabel('Arm tape', { exact: true }).check();
+  await page.getByLabel('Armbands', { exact: true }).check();
+  await page.getByLabel('Face shape', { exact: true }).selectOption('tapered');
+  await page.getByLabel('Hairstyle', { exact: true }).selectOption('crest');
+  await page.getByLabel('Pose', { exact: true }).selectOption('Stride');
+  await page.getByLabel('Cycle scrub', { exact: true }).fill('0.25');
+  const first = await canvas.screenshot();
+  await page.getByLabel('Cycle scrub', { exact: true }).fill('0.75');
+  await expect(async () => expect(await canvas.screenshot()).not.toEqual(first)).toPass();
+  await page.getByLabel('Animate study', { exact: true }).check();
+  await expect(page.getByLabel('Animate study', { exact: true })).toBeChecked();
+  await page.getByLabel('Cycle scrub', { exact: true }).fill('0.5');
+  await expect(page.getByLabel('Animate study', { exact: true })).not.toBeChecked();
+  expect(errors).toEqual([]);
+});

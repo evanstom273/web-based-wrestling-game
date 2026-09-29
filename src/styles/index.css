@@ -329,3 +329,19 @@ button {
     bottom: 56px;
   }
 }
+
+.lab-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+  font-size: 13px;
+}
+.lab-choice select {
+  min-height: 40px;
+  border: 1px solid #58636b;
+  border-radius: 6px;
+  padding: 7px;
+  background: #17232b;
+  color: #f3f5f5;
+}

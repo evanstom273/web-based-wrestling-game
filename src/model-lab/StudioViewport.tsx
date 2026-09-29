@@ -3,6 +3,7 @@ import { OrbitControls } from '@react-three/drei';
 import { useEffect, useRef } from 'react';
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
 import type { WrestlerVisualDefinition } from '../game/scene/human/definition';
+import type { PoseSettings } from '../game/scene/human/poses';
 import { HumanPreview } from './HumanPreview';
 import { type View } from './views';
 function StudioCamera({
@@ -52,6 +53,7 @@ export function StudioViewport({
   rotating,
   wireframe,
   gear,
+  pose,
 }: {
   definition: WrestlerVisualDefinition;
   view: View;
@@ -59,6 +61,7 @@ export function StudioViewport({
   rotating: boolean;
   wireframe: boolean;
   gear: boolean;
+  pose: PoseSettings;
 }) {
   return (
     <Canvas
@@ -85,7 +88,7 @@ export function StudioViewport({
         shadow-camera-far={12}
       />
       <directionalLight position={[3, 2, -3]} intensity={1.4} color="#eef2ff" />
-      <HumanPreview definition={definition} wireframe={wireframe} gear={gear} />
+      <HumanPreview definition={definition} wireframe={wireframe} gear={gear} pose={pose} />
       <mesh receiveShadow rotation-x={-Math.PI / 2} position-y={0}>
         <planeGeometry args={[200, 200]} />
         <meshStandardMaterial color="#a6aaaa" roughness={1} />

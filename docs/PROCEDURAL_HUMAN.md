@@ -1,61 +1,65 @@
 # Procedural human model lab
 
-Open `/model-lab`, or use **Model lab** in the ring view. The match renderer and controls are unchanged. The lab is an isolated presentation experiment, not a new match simulation.
+Open `/model-lab` or use **Model lab** in the ring view. This is an isolated presentation study: the match renderer, simulation, physics and controls are unchanged. No character assets or new dependencies are used.
 
-## Generation pipeline
+## Actual pipeline
 
-`definition.ts` → `generateHuman(body)` → indexed `BufferGeometry` → `HumanPreview.tsx`.
+`WrestlerVisualDefinition` → anatomical surfaces → proportion-aware bind skeleton + weights → fitted wardrobe → R3F skinned meshes.
 
-- `src/game/scene/human/definition.ts` owns the visual definition, bounded numeric controls and four presets.
-- `generateHuman.ts` authors anatomical cross-sections in metres. The torso has separate chest/abdomen and back profiles. Shoulder openings share vertices with the arms; the pelvis branches into both thighs around one shared crotch vertex. Palms branch into thumbs. Neck and skull loops are stitched together, including loops of different resolutions.
-- `head.ts` authors jaw, chin, cheeks, eye sockets, forehead, cranium and nose through profiles. Ears are small fitted shells. Eye whites, pupils, brows and mouth are colored geometry. The short crop uses skull profiles, not an independent sphere.
-- `mesh.ts` owns indexed loops, caps, unequal-loop stitching, connected-shell winding and normals. Unreferenced construction vertices are removed. There is no imported mesh, texture, image or character asset.
-- `src/model-lab` owns only React controls, studio lighting, camera and R3F presentation. No match engine, Zustand or physics rules are added to the generator.
+| File under `src/game/scene/human/` | Responsibility                                                                                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `definition.ts`                    | Bounded body parameters, six presets, face/hair choices and independent wardrobe slots                                  |
+| `generateHuman.ts`                 | Continuous torso, branching shoulders/arms/palms/thumbs and pelvis/legs; height normalization; heel/instep/toe profiles |
+| `mesh.ts`                          | Indexed profile joining, unequal boundary stitching, consistent winding, normals and anatomical region ownership        |
+| `head.ts`                          | Authored skull/jaw/nose profiles, minimal geometry features and skull-following hairstyles                              |
+| `rig.ts`                           | 25-bone hierarchy, bind positions, region-aware normalized skin weights                                                 |
+| `poses.ts`                         | Deterministic presentation-only pose studies and time-based joint motion                                                |
+| `wardrobe.ts`                      | Body-derived panels, clipped garment boundaries, interpolated skin weights and material batching                        |
 
-The head, torso, arms, palms, thumbs and legs form one closed connected surface. Ears and bare feet are additional fitted closed shells in the same skin geometry. This is not yet a fully welded, rigged production character.
+`src/model-lab/HumanPreview.tsx` manages generated resources and binds every visible part to one skeleton. `StudyControls.tsx` owns wardrobe/appearance/pose UI. Generator code does not depend on React or the match engine.
 
-## Parameters and presets
+## Anatomy and customization
 
-Height is in metres. Other dimensions are bounded ratios around the authored adult; muscle and softness range from 0 to 1. The completed skin is grounded and normalized to the requested height, so changing torso, head or leg proportions does not silently change stature. Hair extends slightly above measured skin height.
+Height is in metres. Lengths, widths and masses are bounded ratios around an authored adult. The skin is grounded and normalized to requested height; hair can extend above it. Controls cover shoulders, chest width/depth, waist, pelvis, torso, arm/leg length, upper-arm/forearm/thigh/calf mass, hands, feet, head, neck thickness/length, muscle and softness. Female morphology blends pelvic flare, waist contour and integrated chest shape; chest contour has a separate control. These controls are independent of face, hair and gear.
 
-| Group      | Controls                                                           |
-| ---------- | ------------------------------------------------------------------ |
-| Frame      | Height, shoulders, chest width/depth, waist, pelvis, torso length  |
-| Arms       | Length, upper-arm mass, forearm mass, hand size                    |
-| Legs       | Length, thigh mass, calf mass, foot size                           |
-| Head/build | Head size, neck thickness/length, muscle definition, body softness |
-| Appearance | Skin, gear, tape and hair colors; crop/no hair; gear visibility    |
+Presets: **Athletic**, **Powerhouse**, **Lean / high-flyer**, **Heavyweight**, **Female athletic**, **Female powerhouse**. Female builds have their own frame/mass distributions and start in a top with tights or a singlet. They use the same connected body topology and rig. Add another `bodyPresets` entry using `preset({...}, skin, gear)` and override `face`, `hairstyle` or `wardrobe` as needed. Numeric validation clamps finite inputs and rejects NaN/Infinity. Review combined proportions visually; validation is not art direction.
 
-Athletic is the baseline. Powerhouse increases shoulder/chest, neck and limb mass. Lean / high-flyer reduces mass and slightly lengthens the legs. Heavyweight adds anterior abdominal volume, a wider waist/pelvis and softer definition, independently of stature. These are parameter sets, not global X/Y scaling.
+Muscle and softness change the continuous surface; muscles are not attached spheres. The front rib-cage contour is independent of the back. Arms have deltoid, elbow and forearm transitions. Palms branch into thumbs, with a flattened palm and unequal finger envelope. Grouped fingers have two curl hinges plus a separate thumb bone. Knees/elbows have additional profile rows for bending. Ears and feet remain fitted closed shells in the skin geometry; the head, torso, arms, thumbs and legs share boundaries.
 
-To add a preset, add a named `preset({...bodyOverrides}, skinColor, gearColor)` entry in `bodyPresets`. The lab automatically exposes it. Run unit tests and inspect front, both sides, rear and three-quarter with gear off as well as on. Numeric validation clamps finite values and rejects NaN/Infinity; it is not a substitute for reviewing newly combined proportions.
+Faces: **balanced, broad, tapered**, changing jaw taper and nose projection. Hair: **crop, crest, swept, bob, none**, derived from skull profiles. Masks replace visible hair. Future face detail and hairstyles should extend `head.ts`; longer hair will need extra bones and collision-aware motion.
 
-## Anatomical and gear rules
+## Rig and deformation studies
 
-Use continuous profiles to move mass; do not attach a sphere to represent a muscle. Keep a distinct rib cage, waist, pelvis, elbow, wrist, knee and ankle. Chest definition must not be mirrored onto the back. Hand silhouettes include a joined thumb, palm and grouped fingers. Boots have heel, instep and forefoot profiles.
+The hierarchy has pelvis → spine → chest → neck → head, and bilateral clavicle → upper arm → forearm → hand → grouped fingers → fingertips, with a thumb branch. Each leg has thigh → shin → foot. Bind positions use the generator's exact proportion and height transforms. Region tags prevent nearby torso/thigh vertices from acquiring arm weights. Shared shoulder openings blend chest/clavicle/upper-arm influences; joint bands blend neighboring bones. Weights are bounded to four influences and normalized.
 
-Trunks reuse the body's indexed pelvis/thigh faces with a small normal offset. Pads sample the underlying leg profile; boot shafts follow the leg's stance. Future clothing should consume these surfaces/profiles or their anatomical landmarks rather than guess attachment positions in JSX. New hair belongs beside `buildHead` and should follow the generated skull. Neither system belongs in the match engine.
+**Neutral, Guard, Reach, Squat and Stride** test hand curl, shoulder elevation, elbow bends, knee bends and opposing arm/leg motion. Pose strength, cycle scrub, play/pause and skeleton overlay work with touch controls. Scrubbing pauses animation and gives the same phase when comparing builds. Vertex-sampled foot grounding keeps the lowest foot on the studio floor. These are joint studies, not combat animations or a locomotion controller.
 
-The model uses seven material groups/meshes and 5,098 triangles including all gear and hair. Geometry is memoized by body parameters and disposed on replacement/unmount; changing colors does not regenerate it. This budget is suitable for further match-scene investigation, but is not an on-device frame-rate guarantee. No rig, skinning, LODs or animation were added.
+The bind matrix is explicit and stable: rebuilding meshes after a color/wardrobe change cannot capture a currently posed skeleton as a new bind pose. Poses reset joint transforms each update rather than accumulating rotations.
 
-## Visual review and limitations
+## Gear and performance
 
-Refinement passes corrected angular shoulders, a slab-like face, disconnected neck geometry, an over-pinched pelvis, chest contours accidentally appearing on the back, calf/boot and knee-pad clipping, and garment surface fighting. The final hand pass replaces the separate thumb piece with a true palm branch. Camera buttons occupy their own strip so they do not cover the feet.
+Options include trunks, short tights, full tights, singlets, an athletic top, classic/tall/no boots, knee pads, wrist tape, forearm tape, armbands and classic/open-face masks. Main and accent colors are editable. Garment panels sample the real body surface, clip triangles at hems/cutouts and copy/interpolate bone weights. Clearance is measured along body normals. Mask eye/mouth openings and singlet neck/arm openings are actual geometry cutouts. Boots retain authored ankle/heel/instep/toe profiles; tall shafts fit the underlying calf.
 
-The four presets were reviewed in front, side, rear and three-quarter views. Browser layouts were checked at desktop, 915×412 landscape phone, 900×868 unfolded foldable and 1024×768 tablet sizes. Narrow portrait phones retain the existing rotate-device gate. Dragging/touch orbit and pinch/scroll zoom use Drei OrbitControls; preset camera buttons restore consistent framing and stop automatic rotation.
+Add fitted clothing in `wardrobe.ts`, using anatomical regions and the shared weights. Do not guess attachment points in JSX. Loose cloth would require a different surface/secondary-motion system. The existing generator's simple gear outputs remain available, but the lab uses the customizable wardrobe.
 
-Remaining limitations: the face is deliberately minimal and currently shared between builds, finger masses are mitten-like, the crop is a single simple style, and extreme combinations still need art direction. Ears/feet need welding and deformation review before skinning. The mesh should not be treated as animation-ready merely because its static silhouette works. Trunks currently have a short-legged cut rather than a custom-cut costume system.
+Panels are batched by material into at most three garment meshes. A dressed character uses at most seven visible skinned meshes, typically around 6–8k triangles (the fully accessorized captured singlet is about 8.1k). Unit tests cap the tested complete wardrobe combinations below 10k; the original base-generator 8k budget is retained. Geometry is memoized and disposed; colors do not rebuild anatomy. The viewport renders on demand except during active orbit/pose animation. Studio shadows fall on the ground; self-shadow reception is disabled on the character to avoid low-poly clothing acne. This is not an on-device frame-rate guarantee.
 
-## Verification
+## Review, checks and limits
 
-Run the six commands required in `AGENTS.md`. Unit tests cover deterministic generation, finite data, valid indices, geometry budget, height/ground normalization, closed body edges, normalized normals and each parameter's endpoints. Browser tests verify actual mesh rendering, presets, sliders, view selection, toggles, reset, ring navigation and portrait recovery on all three existing projects. Existing tests remain intact.
+Multiple WebGL review passes covered front, side, rear, three-quarter, all six builds, exposed anatomy, wardrobe combinations and raised-arm/crouched poses. Refinements addressed shoulder pinching, palm/finger curl, guard angles, saw-tooth garment edges, overlay depth fighting and hairstyle crown shape. Layouts were inspected at desktop, 915×412 phone, 900×868 unfolded foldable and 1024×768 tablet. Narrow portrait phones retain the existing rotate-device gate.
 
-A local Chromium binary can optionally be supplied with `PLAYWRIGHT_CHROMIUM_EXECUTABLE`; normal CI still uses Playwright's installed Chromium. Software WebGL is enabled for browser verification. Screenshots in `docs/model-lab/` are actual WebGL captures, not concept art.
+Remaining weaknesses: fingers are grouped rather than individually articulated; faces are intentionally spare; extreme shoulder elevation still loses some volume. Linear skinning has no corrective blend shapes, twist bones, IK/contact locking, cloth collision or hair physics. Stride is a readability study, not a finished walk cycle. Very tight layered gear can show small edge artifacts at extreme proportions/poses. Individual parameter endpoints and combined extremes are checked, but arbitrary new preset combinations still need visual review. This foundation is rigged, not a claim that every production wrestling animation is solved.
 
-## Captured views
+Run the six checks in `AGENTS.md`. Existing tests are preserved. Added tests cover all six rigs, identity bind transforms, normalized weights, finite posed vertices, pose reset, female/face topology compatibility and wardrobe budgets. Browser tests exercise customization, skeleton display, scrubbing, animation toggles and visible pose changes in all three browser projects. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` optionally selects a local Chromium; CI uses Playwright's installed browser.
 
-![Athletic front, side, rear and three-quarter](model-lab/athletic-views.png)
+## Actual rendered captures
 
-![The four body presets](model-lab/body-presets.png)
+![Front, side, rear and three-quarter](model-lab/rigged-views.png)
 
-[Uncovered anatomy](model-lab/anatomy.png) · [Landscape phone](model-lab/phone.png) · [Foldable](model-lab/foldable.png) · [Tablet](model-lab/tablet.png)
+![Six body builds](model-lab/six-builds.png)
+
+![Gear options](model-lab/wardrobe.png)
+
+![Deformation studies](model-lab/poses.png)
+
+[Face/hair variants](model-lab/face-hair.png) · [Female anatomy](model-lab/female-anatomy.png) · [Skeleton](model-lab/skeleton.png) · [Phone](model-lab/phone.png) · [Foldable](model-lab/foldable.png) · [Tablet](model-lab/tablet.png)
