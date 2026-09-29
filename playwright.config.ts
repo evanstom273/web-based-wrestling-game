@@ -27,7 +27,7 @@ export default defineConfig({
       name: 'foldable-inner',
       use: {
         browserName: 'chromium',
-        viewport: { width: 900, height: 800 },
+        viewport: { width: 900, height: 868 },
         hasTouch: true,
         isMobile: true,
         deviceScaleFactor: 2,
