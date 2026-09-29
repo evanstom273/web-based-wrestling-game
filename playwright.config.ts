@@ -13,12 +13,25 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
+      name: 'desktop-chromium',
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: 'mobile-chromium',
-      use: { ...devices['Pixel 7'] },
+      name: 'phone-landscape',
+      use: {
+        ...devices['Pixel 7'],
+        viewport: { width: 915, height: 412 },
+      },
+    },
+    {
+      name: 'foldable-inner',
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 900, height: 868 },
+        hasTouch: true,
+        isMobile: true,
+        deviceScaleFactor: 2,
+      },
     },
   ],
   webServer: {

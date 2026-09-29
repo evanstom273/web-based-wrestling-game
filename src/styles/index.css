@@ -45,3 +45,26 @@ button {
 #root {
   min-height: 100vh;
 }
+
+.portrait-orientation-guard {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 699px) {
+  body {
+    min-height: 100dvh;
+  }
+
+  .portrait-orientation-guard {
+    display: flex;
+    min-height: 100dvh;
+    align-items: center;
+    justify-content: center;
+    padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  }
+
+  .landscape-app {
+    display: none;
+  }
+}

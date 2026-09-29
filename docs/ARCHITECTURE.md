@@ -62,10 +62,18 @@ The preferred asset model is data -> generator -> geometry/materials. Examples:
 
 This does not ban external assets. It prevents the game from depending on them to have a coherent visual identity.
 
+## Responsive/orientation contract
+
+The game targets desktop, landscape phones, tablets and unfolded foldables. Pixel 10 Pro Fold inner-screen use is a primary foldable reference case.
+
+Phone portrait is intentionally unsupported for active gameplay. A narrow portrait viewport must show a rotate-device gate rather than squeeze the match UI into portrait. Square-ish and near-square unfolded foldable layouts remain supported and must not be rejected by a simplistic portrait check.
+
+Safe areas, touch input and practical touch targets are part of the layout contract.
+
 ## Testing layers
 
 - **Vitest:** domain rules and deterministic simulation.
-- **Playwright:** browser boot, menus, input, responsive flows and rendering smoke tests.
+- **Playwright:** browser boot, menus, input, responsive flows and rendering smoke tests across desktop Chromium, a landscape-phone viewport and a touch-enabled unfolded-foldable viewport. Portrait-phone coverage verifies the rotate-device gate.
 - **GitHub Actions:** formatting, lint, typecheck, unit tests, production build and browser smoke tests on every PR/main push.
 
 ## Dependency policy

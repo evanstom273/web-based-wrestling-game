@@ -50,7 +50,11 @@ npm run test:e2e
 
 ## Responsive requirement
 
-Desktop is not the only target. Every UI feature must remain viable on phone, tablet and foldable layouts. Touch targets must be practical, and 3D input must have a touch equivalent where the feature requires direct control.
+Desktop, landscape phone, tablet and unfolded foldable are first-class targets. The primary foldable reference device is a Pixel 10 Pro Fold inner display.
+
+The playable mobile experience is landscape-only. Do not design or ship a compressed portrait match UI. Narrow portrait phones must show a clear rotate-device gate instead of the game. Unfolded/square-ish foldable layouts must remain fully usable rather than being mistaken for unsupported phone portrait.
+
+Touch targets must be practical, safe-area insets must be respected, and every 3D input that requires direct control must have a touch equivalent.
 
 ## Git workflow
 
