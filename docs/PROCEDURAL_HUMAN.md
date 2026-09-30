@@ -1,6 +1,6 @@
-# Procedural human model lab
+# Procedural Create a Wrestler
 
-Open `/model-lab` or use **Model lab** in the ring view. This is an isolated presentation study: the match renderer, simulation, physics and controls are unchanged. No character assets or new dependencies are used.
+Open `/create-wrestler` or use **Create a wrestler** in the ring view. `/model-lab` remains an alias. This is an isolated character creator: the match renderer, simulation, physics and controls are unchanged. No character assets or new dependencies are used.
 
 ## Actual pipeline
 
@@ -16,13 +16,13 @@ Open `/model-lab` or use **Model lab** in the ring view. This is an isolated pre
 | `poses.ts`                         | Deterministic presentation-only pose studies and time-based joint motion                                                |
 | `wardrobe.ts`                      | Body-derived panels, clipped garment boundaries, interpolated skin weights and material batching                        |
 
-`src/model-lab/HumanPreview.tsx` manages generated resources and binds every visible part to one skeleton. `StudyControls.tsx` owns wardrobe/appearance/pose UI. Generator code does not depend on React or the match engine.
+`src/model-lab/HumanPreview.tsx` manages generated resources and binds every visible part to one skeleton. `CustomizationControls.tsx` and `CreatorFields.tsx` own body, face and attire controls. `StudyControls.tsx` owns preview poses and collapsed advanced inspection. Generator code does not depend on React or the match engine.
 
 ## Anatomy and customization
 
 Height is in metres. Lengths, widths and masses are bounded ratios around an authored adult. The skin is grounded and normalized to requested height; hair can extend above it. Controls cover shoulders, chest width/depth, waist, pelvis, torso, arm/leg length, upper-arm/forearm/thigh/calf mass, hands, feet, head, neck thickness/length, muscle and softness. Female morphology blends pelvic flare, waist contour and integrated chest shape; chest contour has a separate control. These controls are independent of face, hair and gear.
 
-Presets: **Athletic**, **Powerhouse**, **Lean / high-flyer**, **Heavyweight**, **Female athletic**, **Female powerhouse**. Female builds have their own frame/mass distributions and start in a top with tights or a singlet. They use the same connected body topology and rig. Add another `bodyPresets` entry using `preset({...}, skin, gear)` and override `face`, `hairstyle` or `wardrobe` as needed. Numeric validation clamps finite inputs and rejects NaN/Infinity. Review combined proportions visually; validation is not art direction.
+Presets: **Athletic**, **Powerhouse**, **Lean / high-flyer**, **Heavyweight**, **Female athletic**, **Female powerhouse**. Female builds have their own frame/mass distributions. Choosing a build preserves the current outfit and enables the athletic top for female builds. They use the same connected body topology and rig. Add another `bodyPresets` entry using `preset({...}, skin, gear)` and override `face`, `hairstyle` or `wardrobe` as needed. Numeric validation clamps finite inputs and rejects NaN/Infinity. Review combined proportions visually; validation is not art direction.
 
 Muscle and softness change the continuous surface; muscles are not attached spheres. The front rib-cage contour is independent of the back. Arms have deltoid, elbow and forearm transitions. Palms branch into thumbs, with a flattened palm and unequal finger envelope. Grouped fingers have two curl hinges plus a separate thumb bone. Knees/elbows have additional profile rows for bending. Ears and feet remain fitted closed shells in the skin geometry; the head, torso, arms, thumbs and legs share boundaries.
 
@@ -42,7 +42,17 @@ Options include trunks, short tights, full tights, singlets, an athletic top, cl
 
 Add fitted clothing in `wardrobe.ts`, using anatomical regions and the shared weights. Do not guess attachment points in JSX. Loose cloth would require a different surface/secondary-motion system. The existing generator's simple gear outputs remain available, but the lab uses the customizable wardrobe.
 
-Panels are batched by material into at most three garment meshes. A dressed character uses at most seven visible skinned meshes, typically around 6–8k triangles (the fully accessorized captured singlet is about 8.1k). Unit tests cap the tested complete wardrobe combinations below 10k; the original base-generator 8k budget is retained. Geometry is memoized and disposed; colors do not rebuild anatomy. The viewport renders on demand except during active orbit/pose animation. Studio shadows fall on the ground; self-shadow reception is disabled on the character to avoid low-poly clothing acne. This is not an on-device frame-rate guarantee.
+Panels are batched by material into at most three garment meshes. A dressed character uses at most seven visible skinned meshes. The default base generator remains around 6–8k triangles dressed. The creator explicitly requests one bounded subdivision pass: approximately 27k triangles dressed, with skin capped below 24k in regression tests. This higher-detail preview does not replace the match renderer. Base-quality unit tests cap the tested complete wardrobe combinations below 10k; the original base-generator 8k budget is retained. Geometry is memoized and disposed; colors do not rebuild anatomy. The viewport renders on demand except during active orbit/pose animation. Studio shadows fall on the ground; self-shadow reception is disabled on the character to avoid low-poly clothing acne. This is not an on-device frame-rate guarantee.
+
+## Creator refinement
+
+`refineGeometry.ts` performs one indexed subdivision/smoothing pass while preserving anatomical ownership, soles and height extrema. It refines the authored surface, not a collection of added primitives. The head has 48-point profiles; small facial feature patches are tessellated and projected onto the refined face so pupils and lips follow its curvature. Shoulder garments extend over the full crest: both front and back use the same underlying surface and skin weights. Overhead ray tests cover both straps on four male/female builds, for tops and singlets.
+
+**Muscle mass** ranges from Smooth (0) through Defined to Ripped (1). It changes upper-arm, forearm, chest, thigh and calf volume as well as integrated pectoral, abdominal, oblique and back relief. Body softness attenuates definition independently. Height, joint landmarks and connectivity remain stable. Extra torso profile rows support the relief without attached muscle objects.
+
+The creator has Body, Face, Attire and Preview categories, with a closer camera for face editing. Ring name and Save wrestler remain available while the options scroll. Saving stores one versioned definition in this browser under `web-wrestling.created-wrestler.v1`; reload restores it after runtime validation. It is not yet a roster slot or match selection. Invalid saves and unavailable/quota-limited storage show an explicit recovery message. Fine proportions and diagnostic overlays remain available without dominating the main flow.
+
+Current review captures: [creator](creator/desktop.png), [shoulder coverage](creator/shoulders.png), [smooth/ripped](creator/muscle.png), [face](creator/face.png), [landscape phone](creator/phone.png), [foldable](creator/foldable.png).
 
 ## Review, checks and limits
 

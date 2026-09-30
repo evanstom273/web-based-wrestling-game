@@ -28,7 +28,11 @@ export function HumanPreview({
   const { gl, invalidate } = useThree();
   const model = useMemo(
     () =>
-      generateHuman(definition.body, { face: definition.face, hairstyle: definition.hairstyle }),
+      generateHuman(
+        definition.body,
+        { face: definition.face, hairstyle: definition.hairstyle },
+        'creator',
+      ),
     [definition.body, definition.face, definition.hairstyle],
   );
   const rig = useMemo(() => {

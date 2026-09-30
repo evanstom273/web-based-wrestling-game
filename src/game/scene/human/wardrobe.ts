@@ -130,7 +130,7 @@ export function generateWardrobe(model: HumanGeometry, b: Body, wardrobe: Wardro
     if (p.region === 3 || p.region === 4 || p.region === 5) return false;
     if (p.y < bottom * b.legs) return false;
     if (p.y < ty(1.056)) return true;
-    if (wardrobe.outfit !== 'singlet' || p.y > ty(1.515)) return false;
+    if (wardrobe.outfit !== 'singlet' || p.y > ty(1.565)) return false;
     const neckLine = ty(p.z > 0 ? 1.32 : 1.36);
     return (
       p.y < neckLine || (Math.abs(p.x) > 0.11 * b.shoulders && Math.abs(p.x) < 0.205 * b.shoulders)
@@ -142,7 +142,7 @@ export function generateWardrobe(model: HumanGeometry, b: Body, wardrobe: Wardro
       (p) =>
         p.region === 0 &&
         p.y > ty(1.235) &&
-        p.y < ty(1.515) &&
+        p.y < ty(1.565) &&
         (p.y < ty(1.37) ||
           (Math.abs(p.x) > 0.11 * b.shoulders && Math.abs(p.x) < 0.205 * b.shoulders)),
     );

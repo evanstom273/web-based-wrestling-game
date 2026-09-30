@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-30T00:00:00Z",
+  "title": "Design System: Wrestling Creator",
+  "extensions": {
+    "motion": [
+      {
+        "name": "button-color",
+        "value": "150ms ease-out",
+        "purpose": "Button background and text transitions; none under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-width",
+        "value": "1000px"
+      },
+      {
+        "name": "compact-landscape-height",
+        "value": "500px"
+      },
+      {
+        "name": "portrait-gate-width",
+        "value": "699px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Save button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary creator action.",
+      "html": "<button class=\"ds-save\">Save wrestler</button>",
+      "css": ".ds-save { font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: var(--creator-accent, #b2d7c5); color: #182b23; padding: 8px 14px; border: 0; border-radius: 5px; font-size: 12px; font-weight: 650; cursor: pointer; transition: background-color 150ms ease-out, color 150ms ease-out; } .ds-save:hover:not(:disabled) { background: #ceeadb; } .ds-save:disabled { opacity: .55; cursor: default; } .ds-save:focus-visible { outline: 2px solid #e6ce95; outline-offset: 3px; } @media(prefers-reduced-motion: reduce) { .ds-save { transition: none; } }"
+    },
+    {
+      "name": "Preset button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined body preset action.",
+      "html": "<button class=\"ds-preset\" aria-pressed=\"false\">Athletic</button>",
+      "css": ".ds-preset { font-family: Inter, ui-sans-serif, system-ui, sans-serif; min-height: 48px; padding: 10px; border: 1px solid #53665c; border-radius: 5px; background: var(--creator-bg, #151d1e); color: var(--creator-text, #f1f4f1); font-size: 12px; cursor: pointer; } .ds-preset:hover { background: #293a32; } .ds-preset[aria-pressed=\"true\"] { border-color: var(--creator-accent, #b2d7c5); background: #304b3d; color: #d5f0df; } .ds-preset:focus-visible { outline: 2px solid #e6ce95; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ring name",
+      "kind": "input",
+      "refersTo": "input-name",
+      "description": "Editable name in the save footer.",
+      "html": "<label class=\"ds-field\">Ring name<input value=\"My wrestler\"></label>",
+      "css": ".ds-field { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: var(--creator-muted, #b1c0ba); font-size: 12px; } .ds-field input { display: block; margin-top: 7px; min-height: 44px; background: #152019; color: var(--creator-text, #f1f4f1); border: 1px solid #53665c; border-radius: 5px; padding: 8px 10px; font-size: 14px; caret-color: var(--creator-accent, #b2d7c5); } .ds-field input:focus-visible { outline: 2px solid #e6ce95; outline-offset: 3px; }"
+    },
+    {
+      "name": "Category tabs",
+      "kind": "nav",
+      "refersTo": "tab-selected",
+      "description": "Equal-width creator categories.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Customization\"><button role=\"tab\" aria-selected=\"true\">Body</button><button role=\"tab\" aria-selected=\"false\">Face</button><button role=\"tab\" aria-selected=\"false\">Attire</button><button role=\"tab\" aria-selected=\"false\">Preview</button></div>",
+      "css": ".ds-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 8px; background: var(--creator-bg, #151d1e); border-bottom: 1px solid var(--creator-line, #3c4b47); } .ds-tabs button { font-family: Inter, ui-sans-serif, system-ui, sans-serif; min-height: 44px; border: 0; border-radius: 4px; font-size: 13px; background: transparent; color: var(--creator-muted, #b1c0ba); cursor: pointer; } .ds-tabs button:hover { background: #293a32; } .ds-tabs button[aria-selected=\"true\"] { background: var(--creator-accent, #b2d7c5); color: #182b23; font-weight: 650; } .ds-tabs button:focus-visible { outline: 2px solid #e6ce95; outline-offset: 3px; }"
+    },
+    {
+      "name": "Color swatch",
+      "kind": "custom",
+      "description": "Selected preset attire color.",
+      "html": "<button class=\"ds-swatch\" aria-label=\"Gear blue\" aria-pressed=\"true\"></button>",
+      "css": ".ds-swatch { width: 36px; height: 36px; border-radius: 50%; border: 2px solid transparent; background: #214e68; cursor: pointer; } .ds-swatch[aria-pressed=\"true\"] { outline: 2px solid var(--creator-text, #f1f4f1); outline-offset: 2px; } .ds-swatch:focus-visible { outline: 2px solid #e6ce95; outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "overview": "The implemented creator pairs dark green-gray controls with mint selection states and a neutral, lit 3D studio. The wrestler is the visual focus; compact labeled controls support immediate customization. This document records the existing creator surface, not a new brand identity.",
+    "dos": [
+      "Do keep the live wrestler visible beside customization controls.",
+      "Do retain explicit labels, visible focus, and practical touch targets; most buttons and fields are at least 44px high.",
+      "Do keep the existing dark and mint visual authority."
+    ],
+    "donts": [
+      "Don't make inspection controls the primary creator experience.",
+      "Don't compress the playable interface into a narrow portrait phone layout."
+    ]
+  }
+}

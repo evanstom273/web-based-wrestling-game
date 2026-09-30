@@ -33,10 +33,10 @@ export function buildHead(
   const nose = face === 'broad' ? 1.12 : face === 'tapered' ? 0.85 : 1;
   const jaw = face === 'broad' ? 1.12 : face === 'tapered' ? 0.88 : 1;
   const headPoints = headLevels.map(([y, w, d, z]) =>
-    ellipse(0, headBase + y * headScale, z * headScale, w * headScale, d * headScale, 32).map(
+    ellipse(0, headBase + y * headScale, z * headScale, w * headScale, d * headScale, 48).map(
       ([x, yy, zz], j): Point => {
         x *= 1 + (jaw - 1) * Math.max(0, 1 - y / 0.14);
-        const sine = Math.sin((j / 32) * Math.PI * 2);
+        const sine = Math.sin((j / 48) * Math.PI * 2);
         if (sine > 0) {
           zz = (z + d * Math.pow(sine, 0.58)) * headScale;
           const mid = Math.exp((-x * x) / 0.00012);
@@ -44,12 +44,12 @@ export function buildHead(
           if (y === 0.073) zz += 0.015 * headScale * mid * nose;
           if (y === 0.105) zz += 0.017 * headScale * mid * nose;
           if (y === 0.125) zz += 0.008 * headScale * mid * nose;
-          if (y === 0.047) zz += 0.006 * headScale * Math.exp((-x * x) / 0.0008);
+          if (y === 0.047) zz += 0.002 * headScale * Math.exp((-x * x) / 0.0008);
           if (y === 0.125)
             zz -= 0.006 * headScale * Math.exp(-((Math.abs(x) - 0.037) ** 2) / 0.0001);
         }
         if (y < 0.06)
-          yy += (1 - Math.sin((j / 32) * Math.PI * 2)) * 0.017 * (1 - y / 0.06) * headScale;
+          yy += (1 - Math.sin((j / 48) * Math.PI * 2)) * 0.017 * (1 - y / 0.06) * headScale;
         return [x, yy, zz];
       },
     ),
@@ -78,7 +78,7 @@ export function buildHead(
             -0.005,
             w! * headScale,
             d! * headScale,
-            10,
+            12,
           ),
         ),
       ),
@@ -122,15 +122,14 @@ export function buildHead(
   // Short crop follows the head's own surface; its lower edge forms temples and hairline.
   const hairProfiles = headPoints.slice(9).map((points, r) =>
     points.map(([x, y, z], j): Point => {
-      const a = (j / 32) * Math.PI * 2;
+      const a = (j / 48) * Math.PI * 2;
       const hairline =
         r === 0 ? (Math.sin(a) > 0 ? 0.032 : Math.sin(a) < -0.3 ? -0.035 : 0) : 0.006;
       let lift = 0;
       if (hairstyle === 'crest') lift = 0.045 * Math.exp((-x * x) / 0.001) * Math.min(1, r / 2);
       if (hairstyle === 'swept')
         lift =
-          0.025 * Math.max(0, Math.sin(a)) * Math.min(1, r / 2) +
-          (r === 4 ? 0.005 : 0.018 * Math.min(1, r / 3));
+          ([0, 0.012, 0.024, 0.021, 0.006][r] ?? 0.006) * (0.7 + 0.3 * Math.max(0, Math.sin(a)));
       const bob = hairstyle === 'bob';
       const drop = bob && r === 0 && Math.sin(a) < 0.65 ? -0.125 : hairline;
       return [

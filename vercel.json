@@ -6,6 +6,10 @@
     {
       "source": "/model-lab",
       "destination": "/index.html"
+    },
+    {
+      "source": "/create-wrestler",
+      "destination": "/index.html"
     }
   ]
 }
