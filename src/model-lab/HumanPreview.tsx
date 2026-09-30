@@ -1,18 +1,13 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useMemo } from 'react';
-import {
-  DoubleSide,
-  Matrix4,
-  MeshStandardMaterial,
-  SkeletonHelper,
-  SkinnedMesh,
-  Vector3,
-} from 'three';
+import { useEffect, useLayoutEffect, useMemo } from 'react';
+import { Matrix4, SkeletonHelper, SkinnedMesh, Vector3 } from 'three';
 import { generateHuman } from '../game/scene/human/generateHuman';
 import type { WrestlerVisualDefinition } from '../game/scene/human/definition';
 import { createHumanRig, skinGeometry } from '../game/scene/human/rig';
 import { applyPose, type PoseSettings } from '../game/scene/human/poses';
 import { generateWardrobe } from '../game/scene/human/wardrobe';
+import { createSurfaceTextures } from '../game/scene/human/materials/textures';
+import { createWrestlerMaterials } from '../game/scene/human/materials/materials';
 
 export function HumanPreview({
   definition,
@@ -51,28 +46,14 @@ export function HumanPreview({
     () => generateWardrobe(model, definition.body, definition.wardrobe),
     [model, definition.body, definition.wardrobe],
   );
-  const materials = useMemo(() => {
-    const make = (color: string, vertexColors = false) =>
-      new MeshStandardMaterial({
-        color,
-        roughness: 0.85,
-        side: DoubleSide,
-        wireframe,
-        vertexColors,
-      });
-    const accent = make(definition.accent);
-    accent.polygonOffset = true;
-    accent.polygonOffsetFactor = -1;
-    accent.polygonOffsetUnits = -1;
-    return {
-      skin: make(definition.skin),
-      primary: make(definition.gear),
-      accent,
-      boot: make('#24282b'),
-      hair: make(definition.hair),
-      features: make('#ffffff', true),
-    };
-  }, [definition.skin, definition.gear, definition.accent, definition.hair, wireframe]);
+  const surfaces = useMemo(() => createSurfaceTextures(gl.capabilities.getMaxAnisotropy()), [gl]);
+  const materialSet = useMemo(() => createWrestlerMaterials(surfaces.textures), [surfaces]);
+  const materials = materialSet.materials;
+  useLayoutEffect(() => {
+    materialSet.update(definition, model, wireframe);
+    invalidate();
+  }, [materialSet, definition, model, wireframe, invalidate]);
+  useEffect(() => () => surfaces.dispose(), [surfaces]);
   const meshes = useMemo(() => {
     const parts = [
       { name: 'skin', geometry: model.skin, material: materials.skin },
@@ -148,6 +129,7 @@ export function HumanPreview({
     gl.domElement.setAttribute('data-rendered-height', definition.body.height.toFixed(2));
     gl.domElement.setAttribute('data-pose', pose.pose);
     gl.domElement.setAttribute('data-outfit', definition.wardrobe.outfit);
+    gl.domElement.setAttribute('data-materials', 'procedural-pbr');
     gl.domElement.setAttribute('data-bones', String(rig.bones.length));
     gl.domElement.setAttribute(
       'data-triangles',

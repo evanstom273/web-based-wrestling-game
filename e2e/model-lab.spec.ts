@@ -153,3 +153,31 @@ test('creator recovers from corrupt saves and reports storage failures', async (
   await expect(page.getByRole('status').filter({ hasText: 'Unable to save' })).toBeVisible();
   await expect(page.locator('canvas')).toHaveAttribute('data-bones', '25');
 });
+
+test('procedural materials compile across hair, gear and posed body variants', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.goto('/create-wrestler');
+  await expect(page.locator('canvas')).toHaveAttribute('data-materials', 'procedural-pbr');
+  await page.getByRole('tab', { name: 'Face', exact: true }).click();
+  for (const hairstyle of ['crop', 'crest', 'swept', 'bob', 'none']) {
+    await page.getByLabel('Hairstyle', { exact: true }).selectOption(hairstyle);
+    await page.getByRole('button', { name: 'Three-quarter', exact: true }).click();
+  }
+  await page.getByRole('tab', { name: 'Body', exact: true }).click();
+  await page.getByRole('button', { name: 'Female powerhouse', exact: true }).click();
+  await page.getByRole('tab', { name: 'Attire', exact: true }).click();
+  await page.getByLabel('Outfit', { exact: true }).selectOption('singlet');
+  await page.getByLabel('Mask', { exact: true }).selectOption('classic');
+  await page.getByLabel('Boots', { exact: true }).selectOption('tall');
+  await page.getByLabel('Arm tape', { exact: true }).check();
+  await page.getByRole('tab', { name: 'Preview', exact: true }).click();
+  await page.getByLabel('Pose', { exact: true }).selectOption('Reach');
+  await expect(page.locator('canvas')).toHaveAttribute('data-pose', 'Reach');
+  // Read back an actual rendered WebGL frame, rather than trusting only mounted DOM.
+  await page.locator('canvas').screenshot();
+  expect(errors).toEqual([]);
+});

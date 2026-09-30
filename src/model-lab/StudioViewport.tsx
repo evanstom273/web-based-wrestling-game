@@ -5,6 +5,7 @@ import type { OrbitControls as OrbitControlsType } from 'three-stdlib';
 import type { WrestlerVisualDefinition } from '../game/scene/human/definition';
 import type { PoseSettings } from '../game/scene/human/poses';
 import { HumanPreview } from './HumanPreview';
+import { StudioEnvironment } from './StudioEnvironment';
 import { type View } from './views';
 function StudioCamera({
   view,
@@ -77,17 +78,18 @@ export function StudioViewport({
     <Canvas
       shadows
       frameloop="demand"
-      dpr={[1, 1.75]}
+      dpr={[1, 2]}
       camera={{ position: [2, 1.08, 3], fov: 37, near: 0.05, far: 40 }}
       gl={{ antialias: true }}
     >
       <color attach="background" args={['#b6b9b9']} />
       <fog attach="fog" args={['#b6b9b9', 7, 18]} />
-      <hemisphereLight args={['#ffffff', '#77736c', 1.7]} />
+      <StudioEnvironment />
+      <hemisphereLight args={['#dce5ed', '#655e55', 0.45]} />
       <directionalLight
         castShadow
         position={[-3, 5, 4]}
-        intensity={2.6}
+        intensity={2.4}
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-2}
         shadow-camera-right={2}
@@ -98,7 +100,7 @@ export function StudioViewport({
         shadow-camera-near={0.1}
         shadow-camera-far={12}
       />
-      <directionalLight position={[3, 2, -3]} intensity={1.4} color="#eef2ff" />
+      <directionalLight position={[3, 2, -3]} intensity={1.5} color="#eef2ff" />
       <HumanPreview definition={definition} wireframe={wireframe} gear={gear} pose={pose} />
       <mesh receiveShadow rotation-x={-Math.PI / 2} position-y={-0.055}>
         <planeGeometry args={[200, 200]} />
