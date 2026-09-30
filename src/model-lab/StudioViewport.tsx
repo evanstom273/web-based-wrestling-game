@@ -10,10 +10,14 @@ function StudioCamera({
   view,
   revision,
   rotating,
+  focus,
+  height,
 }: {
   view: View;
   revision: number;
   rotating: boolean;
+  focus: 'head' | 'full';
+  height: number;
 }) {
   const controls = useRef<OrbitControlsType>(null);
   const { camera, size } = useThree();
@@ -26,18 +30,22 @@ function StudioCamera({
       'Three-quarter': Math.PI / 5,
     };
     const a = angles[view];
-    const distance = Math.max(3.9, 2.8 / (size.width / size.height));
-    camera.position.set(Math.sin(a) * distance, 1.08, Math.cos(a) * distance);
-    camera.lookAt(0, 1.02, 0);
-    controls.current?.target.set(0, 1.02, 0);
+    const distance =
+      focus === 'head'
+        ? Math.max(0.94, 0.75 / (size.width / size.height))
+        : Math.max(3.9, 2.8 / (size.width / size.height));
+    const targetY = focus === 'head' ? height * 0.88 : 1.02;
+    camera.position.set(Math.sin(a) * distance, targetY + 0.06, Math.cos(a) * distance);
+    camera.lookAt(0, targetY, 0);
+    controls.current?.target.set(0, targetY, 0);
     controls.current?.update();
-  }, [camera, view, revision, size.width, size.height]);
+  }, [camera, view, revision, size.width, size.height, focus, height]);
   return (
     <OrbitControls
       ref={controls}
       makeDefault
       enablePan={false}
-      minDistance={2.2}
+      minDistance={focus === 'head' ? 0.6 : 2.2}
       maxDistance={6}
       minPolarAngle={0.35}
       maxPolarAngle={Math.PI * 0.68}
@@ -54,6 +62,7 @@ export function StudioViewport({
   wireframe,
   gear,
   pose,
+  focus,
 }: {
   definition: WrestlerVisualDefinition;
   view: View;
@@ -62,6 +71,7 @@ export function StudioViewport({
   wireframe: boolean;
   gear: boolean;
   pose: PoseSettings;
+  focus: 'head' | 'full';
 }) {
   return (
     <Canvas
@@ -72,6 +82,7 @@ export function StudioViewport({
       gl={{ antialias: true }}
     >
       <color attach="background" args={['#b6b9b9']} />
+      <fog attach="fog" args={['#b6b9b9', 7, 18]} />
       <hemisphereLight args={['#ffffff', '#77736c', 1.7]} />
       <directionalLight
         castShadow
@@ -89,11 +100,21 @@ export function StudioViewport({
       />
       <directionalLight position={[3, 2, -3]} intensity={1.4} color="#eef2ff" />
       <HumanPreview definition={definition} wireframe={wireframe} gear={gear} pose={pose} />
-      <mesh receiveShadow rotation-x={-Math.PI / 2} position-y={0}>
+      <mesh receiveShadow rotation-x={-Math.PI / 2} position-y={-0.055}>
         <planeGeometry args={[200, 200]} />
         <meshStandardMaterial color="#a6aaaa" roughness={1} />
       </mesh>
-      <StudioCamera view={view} revision={revision} rotating={rotating} />
+      <mesh receiveShadow position-y={-0.025}>
+        <cylinderGeometry args={[0.78, 0.8, 0.05, 64]} />
+        <meshStandardMaterial color="#424c49" roughness={0.95} />
+      </mesh>
+      <StudioCamera
+        view={view}
+        revision={revision}
+        rotating={rotating}
+        focus={focus}
+        height={definition.body.height}
+      />
     </Canvas>
   );
 }

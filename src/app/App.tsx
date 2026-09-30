@@ -26,16 +26,16 @@ export function App() {
       </section>
 
       <main data-testid="landscape-app" className="landscape-app match-shell">
-        {window.location.pathname === '/model-lab' ? (
-          <Suspense fallback={<p>Opening model lab…</p>}>
+        {['/model-lab', '/create-wrestler'].includes(window.location.pathname) ? (
+          <Suspense fallback={<p>Opening wrestler creator…</p>}>
             <ModelLab />
           </Suspense>
         ) : (
           <>
             <GameViewport />
             <MatchControls />
-            <a className="model-lab-link" href="/model-lab">
-              Model lab ↗
+            <a className="model-lab-link" href="/create-wrestler">
+              Create a wrestler
             </a>
           </>
         )}

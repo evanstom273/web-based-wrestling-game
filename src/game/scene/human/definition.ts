@@ -18,7 +18,7 @@ export const bodyParameters = {
   head: { label: 'Head size', min: 0.94, max: 1.08, default: 1 },
   neck: { label: 'Neck thickness', min: 0.85, max: 1.2, default: 1 },
   neckLength: { label: 'Neck length', min: 0.85, max: 1.15, default: 1 },
-  muscle: { label: 'Muscle definition', min: 0, max: 1, default: 0.65 },
+  muscle: { label: 'Muscle mass', min: 0, max: 1, default: 0.65 },
   feminine: { label: 'Female morphology', min: 0, max: 1, default: 0 },
   bust: { label: 'Chest contour', min: 0, max: 1, default: 0.45 },
   fat: { label: 'Body softness', min: 0, max: 1, default: 0.15 },

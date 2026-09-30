@@ -1,6 +1,15 @@
-import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
+import {
+  BufferGeometry,
+  Float32BufferAttribute,
+  Vector3,
+  Mesh,
+  MeshBasicMaterial,
+  Raycaster,
+  DoubleSide,
+} from 'three';
 import { validateBody, type Body, type WrestlerVisualDefinition } from './definition';
 import { ellipse, loft, Surface, appendSurface, orientShells, type Point } from './mesh';
+import { refineGeometry } from './refineGeometry';
 import { buildHead } from './head';
 export type HumanGeometry = {
   skin: BufferGeometry;
@@ -20,8 +29,16 @@ export type HumanGeometry = {
 export function generateHuman(
   body: Body,
   appearance?: Pick<WrestlerVisualDefinition, 'face' | 'hairstyle'>,
+  quality: 'base' | 'creator' = 'base',
 ): HumanGeometry {
   const b = validateBody(body);
+  // Mass changes the envelope; definition below changes the connected surface's relief.
+  const bulk = b.muscle;
+  b.upperArms *= 0.82 + bulk * 0.32;
+  b.forearms *= 0.9 + bulk * 0.17;
+  b.thighs *= 0.9 + bulk * 0.19;
+  b.calves *= 0.91 + bulk * 0.16;
+  b.chest *= 0.96 + bulk * 0.08;
   const skin = new Surface(),
     trunks = new Surface(),
     boots = new Surface(),
@@ -34,7 +51,7 @@ export function generateHuman(
   const ty = (y: number) => hipY + (y - 0.91) * b.torso;
   const soft = b.fat;
   const female = b.feminine;
-  const muscle = b.muscle * (1 - soft * 0.7);
+  const muscle = b.muscle ** 1.35 * (1 - soft * 0.88);
   // Pelvis → abdomen → rib cage → axilla → clavicle → trapezius → neck.
   const levels: [number, number, number, number][] = [
     [0.91, 0.211 * b.hips, 0.124 + soft * 0.035, -0.012],
@@ -55,6 +72,21 @@ export function generateHuman(
     [1.56, 0.071 * b.neck, 0.063 * b.neck, -0.006],
     [1.592 + (b.neckLength - 1) * 0.065, 0.061 * b.neck, 0.058 * b.neck, -0.006],
   ];
+  // Extra abdominal rows resolve paired rectus muscles without pasted-on geometry.
+  for (const y of [1.075, 1.12, 1.155, 1.175, 1.205, 1.22, 1.245, 1.3, 1.34]) {
+    const i = levels.findIndex((p) => p[0] > y);
+    const a = levels[i - 1]!,
+      c = levels[i]!;
+    const t = (y - a[0]) / (c[0] - a[0]);
+    levels.splice(i, 0, [y, ...a.slice(1).map((v, j) => v + (c[j + 1]! - v) * t)] as [
+      number,
+      number,
+      number,
+      number,
+    ]);
+  }
+  const gaussian = (v: number, center: number, width: number) =>
+    Math.exp(-(((v - center) / width) ** 2));
   const axilla = levels.findIndex((p) => p[0] === 1.37);
   const shoulderTop = axilla + 3;
   const rings = levels.map(([y, w, d, z]) =>
@@ -71,17 +103,32 @@ export function generateHuman(
             Math.exp(-(((Math.abs(x) - 0.095) / 0.065) ** 2));
           zz += female * (0.018 + b.bust * 0.028) * chestContour;
         }
-        // Broad pectoral plane with a restrained sternum valley; no applied muscle blobs.
-        if (y > 1.23 && y < 1.43 && zz > 0)
-          zz += muscle * 0.022 * Math.sin(angle) * Math.sin(angle * 2) ** 2;
-        if (zz > 0 && y >= 1.26 && y <= 1.37) zz -= muscle * 0.012 * Math.exp((-x * x) / 0.0008);
-        if (zz > 0 && y === 1.26) yy += (muscle * 0.009 * Math.abs(x)) / w;
-        if (y > 1.05 && y < 1.24 && zz > 0) zz += muscle * 0.004 * Math.cos(x * 48);
+        // Broad pectorals, a sternum valley and three paired rectus groups.
+        if (zz > z) {
+          const front = Math.max(0, Math.sin(angle)) ** 3;
+          zz +=
+            muscle *
+            0.032 *
+            gaussian(y, 1.315, 0.065) *
+            gaussian(Math.abs(x), 0.098, 0.066) *
+            front;
+          zz -= muscle * 0.007 * gaussian(x, 0, 0.014) * gaussian(y, 1.29, 0.1) * front;
+          const abs = [1.12, 1.175, 1.22].reduce((sum, row) => sum + gaussian(y, row, 0.018), 0);
+          zz += muscle * 0.012 * abs * gaussian(Math.abs(x), 0.046, 0.028) * front;
+          zz -= muscle * 0.003 * gaussian(x, 0, 0.013) * gaussian(y, 1.17, 0.09) * front;
+          zz +=
+            muscle *
+            0.009 *
+            gaussian(Math.abs(x), 0.115, 0.028) *
+            gaussian(y, 1.175, 0.065) *
+            front;
+        }
         if (zz < z && y >= 1.055 && y <= 1.37) {
           const rearDepth =
             0.106 + 0.034 * Math.sin((Math.min(1, (y - 1.055) / 0.26) * Math.PI) / 2);
           zz = z + (rearDepth * b.depth + soft * 0.026) * Math.sin(angle);
-          zz += muscle * 0.009 * Math.exp((-x * x) / 0.0015);
+          zz += muscle * 0.01 * gaussian(x, 0, 0.023);
+          zz -= muscle * 0.012 * gaussian(Math.abs(x), 0.095, 0.045) * gaussian(y, 1.32, 0.07);
         }
         if (y === 1.465 && zz > 0) zz -= 0.012 * Math.sin(angle);
         if (y === 1.5 && Math.abs(x) > 0.1) yy += 0.012;
@@ -133,7 +180,8 @@ export function generateHuman(
       const ring = skin.ring(
         Array.from({ length: 14 }, (_, j): Point => {
           const a = start + (j / 14) * Math.PI * 2;
-          return [side * x + w * Math.cos(a), y * b.legs, z + d * Math.sin(a)];
+          const quad = muscle * 0.008 * gaussian(y, 0.73, 0.11) * Math.max(0, Math.sin(a));
+          return [side * x + w * Math.cos(a), y * b.legs, z + d * Math.sin(a) + quad];
         }),
       );
       skin.join(boundary, ring);
@@ -385,12 +433,65 @@ export function generateHuman(
   const geometries = Object.fromEntries(
     Object.entries(surfaces).map(([name, s]) => {
       orientShells(s);
-      const g = s.geometry();
+      const coarse = s.geometry();
+      const g =
+        quality === 'creator' && (name === 'skin' || name === 'hair')
+          ? refineGeometry(coarse)
+          : coarse;
+      if (g !== coarse) coarse.dispose();
       g.translate(0, -floor, 0);
       g.scale(scale, scale, scale);
       return [name, g];
     }),
   ) as Record<keyof typeof surfaces, BufferGeometry>;
+  if (quality === 'creator') {
+    // Project minimal eyelids/iris/brow/lip planes onto the refined face, rather than floating.
+    const material = new MeshBasicMaterial({ side: DoubleSide });
+    const face = new Mesh(geometries.skin, material);
+    face.updateMatrixWorld();
+    const source = geometries.features;
+    const points = source.getAttribute('position');
+    const colors = source.getAttribute('color');
+    const positions: number[] = [],
+      shades: number[] = [],
+      regions: number[] = [],
+      indices: number[] = [];
+    const ray = new Raycaster();
+    // Tessellate each feature patch before projection so its interior follows the curved face.
+    for (let patch = 0; patch < points.count / 4; patch++) {
+      const corners = Array.from({ length: 4 }, (_, j) =>
+        new Vector3(...features.point(patch * 4 + j))
+          .add(new Vector3(0, -floor, 0))
+          .multiplyScalar(scale),
+      );
+      const offset = positions.length / 3;
+      for (let row = 0; row <= 2; row++)
+        for (let col = 0; col <= 8; col++) {
+          const upper = corners[0]!.clone().lerp(corners[1]!, col / 8);
+          const lower = corners[3]!.clone().lerp(corners[2]!, col / 8);
+          const point = upper.lerp(lower, row / 2);
+          ray.set(new Vector3(point.x, point.y, b.height), new Vector3(0, 0, -1));
+          const hit = ray.intersectObject(face)[0];
+          if (hit) point.z = hit.point.z + (0.0015 + (patch % 4) * 0.0007) * scale;
+          positions.push(point.x, point.y, point.z);
+          shades.push(colors.getX(patch * 4), colors.getY(patch * 4), colors.getZ(patch * 4));
+          regions.push(5);
+          if (row < 2 && col < 8) {
+            const a = offset + row * 9 + col;
+            indices.push(a, a + 1, a + 10, a, a + 10, a + 9);
+          }
+        }
+    }
+    const fitted = new BufferGeometry();
+    fitted.setAttribute('position', new Float32BufferAttribute(positions, 3));
+    fitted.setAttribute('color', new Float32BufferAttribute(shades, 3));
+    fitted.setAttribute('region', new Float32BufferAttribute(regions, 1));
+    fitted.setIndex(indices);
+    fitted.computeVertexNormals();
+    geometries.features = fitted;
+    source.dispose();
+    material.dispose();
+  }
   return {
     ...geometries,
     scale,
