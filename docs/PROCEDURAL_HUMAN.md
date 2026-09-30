@@ -36,6 +36,10 @@ The hierarchy has pelvis → spine → chest → neck → head, and bilateral cl
 
 The bind matrix is explicit and stable: rebuilding meshes after a color/wardrobe change cannot capture a currently posed skeleton as a new bind pose. Poses reset joint transforms each update rather than accumulating rotations.
 
+## Surface materials
+
+The creator uses generated skin, hair, fabric, tape and leather textures with distinct physical surface response. See [Procedural materials](PROCEDURAL_MATERIALS.md) for the packed-data pipeline, studio lighting, budgets and current captures.
+
 ## Gear and performance
 
 Options include trunks, short tights, full tights, singlets, an athletic top, classic/tall/no boots, knee pads, wrist tape, forearm tape, armbands and classic/open-face masks. Main and accent colors are editable. Garment panels sample the real body surface, clip triangles at hems/cutouts and copy/interpolate bone weights. Clearance is measured along body normals. Mask eye/mouth openings and singlet neck/arm openings are actual geometry cutouts. Boots retain authored ankle/heel/instep/toe profiles; tall shafts fit the underlying calf.

@@ -455,6 +455,7 @@ export function generateHuman(
     const positions: number[] = [],
       shades: number[] = [],
       regions: number[] = [],
+      featureIds: number[] = [],
       indices: number[] = [];
     const ray = new Raycaster();
     // Tessellate each feature patch before projection so its interior follows the curved face.
@@ -476,6 +477,7 @@ export function generateHuman(
           positions.push(point.x, point.y, point.z);
           shades.push(colors.getX(patch * 4), colors.getY(patch * 4), colors.getZ(patch * 4));
           regions.push(5);
+          featureIds.push(patch === 8 ? 4 : patch % 4);
           if (row < 2 && col < 8) {
             const a = offset + row * 9 + col;
             indices.push(a, a + 1, a + 10, a, a + 10, a + 9);
@@ -486,6 +488,7 @@ export function generateHuman(
     fitted.setAttribute('position', new Float32BufferAttribute(positions, 3));
     fitted.setAttribute('color', new Float32BufferAttribute(shades, 3));
     fitted.setAttribute('region', new Float32BufferAttribute(regions, 1));
+    fitted.setAttribute('featureId', new Float32BufferAttribute(featureIds, 1));
     fitted.setIndex(indices);
     fitted.computeVertexNormals();
     geometries.features = fitted;

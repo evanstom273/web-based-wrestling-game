@@ -2,6 +2,7 @@ import { BufferGeometry, Float32BufferAttribute, Uint16BufferAttribute, Vector3 
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Body, Wardrobe } from './definition';
 import type { HumanGeometry } from './generateHuman';
+import { addGarmentAttributes } from './materials/garmentAttributes';
 
 type Sample = { x: number; y: number; z: number; region: number };
 /** Fit a panel to existing topology. Copied weights keep its clearance through deformation. */
@@ -113,8 +114,10 @@ export function generateWardrobe(model: HumanGeometry, b: Body, wardrobe: Wardro
     offset = 0.005,
   ) => {
     const geometry = fittedPanel(model.skin, select, model, offset);
-    if (geometry.index!.count) panels.push({ name, geometry, material });
-    else geometry.dispose();
+    if (geometry.index!.count) {
+      addGarmentAttributes(geometry, name);
+      panels.push({ name, geometry, material });
+    } else geometry.dispose();
   };
   const bottom =
     wardrobe.outfit === 'full-tights'
